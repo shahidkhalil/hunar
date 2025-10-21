@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  transpilePackages: ['@hunar/ui'],
   images: {
     remotePatterns: [
       {
@@ -12,10 +13,7 @@ const nextConfig = {
         hostname: 'res.cloudinary.com',
       },
     ],
-    dangerouslyAllowSVG: true,
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
-  transpilePackages: ['@hunar/ui'],
 };
 
 module.exports = nextConfig;

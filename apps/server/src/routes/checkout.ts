@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { z } from "zod";
-import stripe from "../lib/stripe";
 import { prisma } from "../lib/db";
 
 const router = Router();
@@ -28,17 +27,17 @@ const checkoutSchema = z.object({
   userId: z.string().optional(),
 });
 
-// Create checkout session
+// Create COD order
 router.post("/create-session", async (req, res) => {
   try {
     const data = checkoutSchema.parse(req.body);
 
     // Calculate totals
     const subtotal = data.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const shipping = subtotal >= 10000 ? 0 : 500; // Free shipping over $100
+    const shipping = subtotal >= 500000 ? 0 : 30000; // Free shipping over Rs. 5000
     const total = subtotal + shipping;
 
-    // Create order in database
+    // Create order in database with COD payment method
     const order = await prisma.order.create({
       data: {
         userId: data.userId,
@@ -48,39 +47,13 @@ router.post("/create-session", async (req, res) => {
         shipping,
         discount: 0,
         total,
-        status: "PENDING",
+        status: "CONFIRMED", // COD orders are confirmed immediately
+        paymentMethod: "COD",
+        shippingAddress: data.shippingAddress,
       },
     });
 
-    // Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      line_items: data.items.map((item) => ({
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: `Product ${item.productId}`,
-          },
-          unit_amount: item.price,
-        },
-        quantity: item.quantity,
-      })),
-      mode: "payment",
-      success_url: `${process.env.WEB_URL}/order/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.WEB_URL}/checkout`,
-      customer_email: data.email,
-      metadata: {
-        orderId: order.id,
-      },
-    });
-
-    // Update order with payment intent
-    await prisma.order.update({
-      where: { id: order.id },
-      data: { paymentIntent: session.id },
-    });
-
-    res.json({ sessionId: session.id, orderId: order.id });
+    res.json({ orderId: order.id });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors });
@@ -90,25 +63,23 @@ router.post("/create-session", async (req, res) => {
   }
 });
 
-// Verify payment
-router.get("/verify/:sessionId", async (req, res) => {
+// Get order details
+router.get("/order/:orderId", async (req, res) => {
   try {
-    const { sessionId } = req.params;
+    const { orderId } = req.params;
 
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+    });
 
-    if (session.payment_status === "paid") {
-      const order = await prisma.order.findFirst({
-        where: { paymentIntent: sessionId },
-      });
-
-      res.json({ success: true, order });
-    } else {
-      res.json({ success: false });
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
     }
+
+    res.json({ order });
   } catch (error) {
-    console.error("Verification error:", error);
-    res.status(500).json({ error: "Verification failed" });
+    console.error("Order fetch error:", error);
+    res.status(500).json({ error: "Failed to fetch order" });
   }
 });
 

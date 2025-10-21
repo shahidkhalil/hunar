@@ -19,7 +19,7 @@ export function Header() {
     <>
       {/* Announcement Bar */}
       <div className="bg-brown text-white text-center py-2 text-sm">
-        Hand-crafted • Ethically made • Free shipping over $100
+        Hand-crafted • Ethically made • Free shipping over Rs. 5000
       </div>
 
       {/* Main Header */}

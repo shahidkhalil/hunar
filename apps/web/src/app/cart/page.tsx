@@ -11,7 +11,7 @@ export default function CartPage() {
   const { items, removeItem, updateQuantity, getTotal } = useCartStore();
 
   const subtotal = getTotal();
-  const shipping = subtotal >= 10000 ? 0 : 500; // Free shipping over $100
+  const shipping = subtotal >= 500000 ? 0 : 30000; // Free shipping over Rs. 5000
   const total = subtotal + shipping;
 
   if (items.length === 0) {

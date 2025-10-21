@@ -98,26 +98,29 @@ model ProductCategory {
 }
 
 model Order {
-  id            String      @id @default(cuid())
-  userId        String?
-  user          User?       @relation(fields: [userId], references: [id])
-  email         String
-  items         Json // [{productId, variantId, title, color, size, qty, price}]
-  subtotal      Int
-  shipping      Int
-  discount      Int
-  total         Int
-  currency      String      @default("USD")
-  status        OrderStatus @default(PENDING)
-  paymentIntent String?
-  addressId     String?
-  address       Address?    @relation(fields: [addressId], references: [id])
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id              String      @id @default(cuid())
+  userId          String?
+  user            User?       @relation(fields: [userId], references: [id])
+  email           String
+  items           Json // [{productId, variantId, title, color, size, qty, price}]
+  subtotal        Int
+  shipping        Int
+  discount        Int
+  total           Int
+  currency        String      @default("PKR")
+  status          OrderStatus @default(PENDING)
+  paymentMethod   String      @default("COD")
+  paymentIntent   String?
+  shippingAddress Json? // {fullName, line1, line2, city, state, postal, country, phone}
+  addressId       String?
+  address         Address?    @relation(fields: [addressId], references: [id])
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 }
 
 enum OrderStatus {
   PENDING
+  CONFIRMED
   PAID
   FULFILLED
   CANCELLED

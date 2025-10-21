@@ -6,14 +6,12 @@ import { Button } from "@hunar/ui";
 import { useCartStore } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
 import { api } from "@/lib/api";
-import { loadStripe } from "@stripe/stripe-js";
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY || "");
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, getTotal, clearCart } = useCartStore();
   const [loading, setLoading] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     fullName: "",
@@ -22,17 +20,18 @@ export default function CheckoutPage() {
     city: "",
     state: "",
     postal: "",
-    country: "US",
+    country: "Pakistan",
     phone: "",
   });
 
   const subtotal = getTotal();
-  const shipping = subtotal >= 10000 ? 0 : 500;
+  const shipping = subtotal >= 500000 ? 0 : 30000; // Free shipping over Rs. 5000
   const total = subtotal + shipping;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setIsCheckingOut(true);
 
     try {
       const checkoutData = {
@@ -55,22 +54,25 @@ export default function CheckoutPage() {
         },
       };
 
-      const { sessionId } = await api.checkout.createSession(checkoutData);
-
-      const stripe = await stripePromise;
-      if (stripe) {
-        await stripe.redirectToCheckout({ sessionId });
+      const { orderId } = await api.checkout.createSession(checkoutData);
+      
+      // Redirect to success page first, then clear cart
+      router.push(`/order/success?orderId=${orderId}`);
+      
+      // Clear cart after a short delay to ensure navigation starts
+      setTimeout(() => {
         clearCart();
-      }
+      }, 100);
     } catch (error) {
       console.error("Checkout error:", error);
       alert("Checkout failed. Please try again.");
+      setIsCheckingOut(false);
     } finally {
       setLoading(false);
     }
   };
 
-  if (items.length === 0) {
+  if (items.length === 0 && !isCheckingOut) {
     router.push("/cart");
     return null;
   }
@@ -219,8 +221,25 @@ export default function CheckoutPage() {
               </div>
             </div>
 
+            <div className="bg-white rounded-2xl p-6 border border-brown/10">
+              <h2 className="font-serif text-xl font-bold text-brown mb-6">
+                Payment Method
+              </h2>
+              <div className="bg-gold/10 border border-gold/30 rounded-xl p-4">
+                <div className="flex items-center gap-3">
+                  <div className="bg-gold text-charcoal font-bold px-3 py-1 rounded-lg text-sm">
+                    COD
+                  </div>
+                  <div>
+                    <p className="font-medium text-charcoal">Cash on Delivery</p>
+                    <p className="text-sm text-charcoal/60">Pay when you receive your order</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <Button type="submit" size="lg" className="w-full" disabled={loading}>
-              {loading ? "Processing..." : "Continue to Payment"}
+              {loading ? "Processing..." : "Place Order"}
             </Button>
           </form>
         </div>

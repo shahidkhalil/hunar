@@ -1,4 +1,4 @@
-# Hunar - Hand-Crafted Crochet E-Commerce Platform
+shar# Hunar - Hand-Crafted Crochet E-Commerce Platform
 
 A production-ready, full-stack e-commerce platform built for selling hand-crafted crochet products. Features a modern tech stack with Next.js 14, Express, PostgreSQL, Redis, and Stripe integration.
 
