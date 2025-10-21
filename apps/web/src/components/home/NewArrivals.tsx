@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ProductCard } from "@/components/product/ProductCard";
-import { productsApi } from "@/lib/api";
+import { api } from "@/lib/api";
 
 export function NewArrivals() {
   const [products, setProducts] = useState<any[]>([]);
@@ -12,8 +12,8 @@ export function NewArrivals() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await productsApi.getAll({ isNew: true, limit: 4 });
-        setProducts(response.data.products);
+        const response = await api.products.list({ isNew: "true", limit: "4" });
+        setProducts(response.products || []);
       } catch (error) {
         console.error("Failed to fetch new arrivals:", error);
       } finally {
