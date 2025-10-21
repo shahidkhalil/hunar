@@ -1,0 +1,8 @@
+{
+  "buildCommand": "cd ../.. && pnpm build --filter=@hunar/web",
+  "devCommand": "cd apps/web && pnpm dev",
+  "installCommand": "pnpm install",
+  "framework": null,
+  "outputDirectory": "apps/web/.next"
+}
+
