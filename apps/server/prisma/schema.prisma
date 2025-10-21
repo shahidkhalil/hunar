@@ -1,0 +1,174 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String         @id @default(cuid())
+  name         String?
+  email        String         @unique
+  passwordHash String?
+  role         Role           @default(CUSTOMER)
+  orders       Order[]
+  addresses    Address[]
+  wishlist     WishlistItem[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+model Category {
+  id       String            @id @default(cuid())
+  name     String
+  slug     String            @unique
+  gender   Gender?
+  products ProductCategory[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+enum Gender {
+  WOMEN
+  MEN
+  UNISEX
+}
+
+model Product {
+  id          String            @id @default(cuid())
+  title       String
+  slug        String            @unique
+  subtitle    String?
+  description String
+  price       Int // in cents
+  compareAt   Int? // compare at price in cents
+  currency    String            @default("PKR")
+  images      Json // array of {publicId, url}
+  materials   String?
+  care        String?
+  rating      Float             @default(0)
+  ratingCount Int               @default(0)
+  variants    Variant[]
+  categories  ProductCategory[]
+  tags        String[]
+  isFeatured  Boolean           @default(false)
+  isNew       Boolean           @default(false)
+  isBestseller Boolean          @default(false)
+  stock       Int               @default(0)
+  status      ProductStatus     @default(PUBLISHED)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+enum ProductStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Variant {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  color     String?
+  size      String?
+  sku       String  @unique
+  stock     Int     @default(0)
+  price     Int? // optional variant price override
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ProductCategory {
+  productId  String
+  categoryId String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([productId, categoryId])
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  userId        String?
+  user          User?       @relation(fields: [userId], references: [id])
+  email         String
+  items         Json // [{productId, variantId, title, color, size, qty, price}]
+  subtotal      Int
+  shipping      Int
+  discount      Int
+  total         Int
+  currency      String      @default("USD")
+  status        OrderStatus @default(PENDING)
+  paymentIntent String?
+  addressId     String?
+  address       Address?    @relation(fields: [addressId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FULFILLED
+  CANCELLED
+  REFUNDED
+}
+
+model Address {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  fullName  String
+  line1     String
+  line2     String?
+  city      String
+  state     String?
+  postal    String
+  country   String
+  phone     String?
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+}
+
+model Coupon {
+  id        String    @id @default(cuid())
+  code      String    @unique
+  type      String // "PERCENT" or "FIXED"
+  value     Int
+  active    Boolean   @default(true)
+  startsAt  DateTime?
+  endsAt    DateTime?
+  usageCap  Int?
+  usedCount Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model HomepageSlot {
+  id        String   @id @default(cuid())
+  key       String   @unique // "hero", "featuredWomen", "featuredMen", "bestsellers"
+  config    Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
