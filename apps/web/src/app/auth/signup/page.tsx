@@ -6,12 +6,14 @@ import { useRouter } from "next/navigation";
 import { Button } from "@hunar/ui";
 import Link from "next/link";
 
-export default function SignInPage() {
+export default function SignUpPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { register } = useAuth();
   const [formData, setFormData] = useState({
+    name: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,17 +23,31 @@ export default function SignInPage() {
     setError("");
     setLoading(true);
 
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      setLoading(false);
+      return;
+    }
+
+    // Validate password length
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters long");
+      setLoading(false);
+      return;
+    }
+
     try {
-      await login(formData.email, formData.password);
+      await register(formData.name, formData.email, formData.password);
       router.push("/account");
     } catch (error: any) {
-      console.error("Login error:", error);
-      if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password") {
-        setError("Invalid email or password");
+      console.error("Registration error:", error);
+      if (error.code === "auth/email-already-in-use") {
+        setError("An account with this email already exists");
       } else if (error.code === "auth/invalid-email") {
         setError("Invalid email address");
-      } else if (error.code === "auth/too-many-requests") {
-        setError("Too many failed attempts. Please try again later.");
+      } else if (error.code === "auth/weak-password") {
+        setError("Password is too weak");
       } else {
         setError("An error occurred. Please try again.");
       }
@@ -44,7 +60,7 @@ export default function SignInPage() {
     <div className="container-custom py-12">
       <div className="max-w-md mx-auto">
         <h1 className="text-4xl font-serif font-bold text-brown mb-6 text-center">
-          Sign In
+          Sign Up
         </h1>
 
         {error && (
@@ -54,6 +70,21 @@ export default function SignInPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-charcoal mb-2">
+              Full Name
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+              className="w-full px-4 py-3 rounded-2xl border border-brown/20 focus:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20"
+            />
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-charcoal mb-2">
               Email
@@ -84,27 +115,35 @@ export default function SignInPage() {
             />
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-charcoal mb-2">
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              required
+              value={formData.confirmPassword}
+              onChange={(e) =>
+                setFormData({ ...formData, confirmPassword: e.target.value })
+              }
+              className="w-full px-4 py-3 rounded-2xl border border-brown/20 focus:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20"
+            />
+          </div>
+
           <Button type="submit" size="lg" className="w-full" disabled={loading}>
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? "Creating account..." : "Sign Up"}
           </Button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-charcoal/70 text-sm">
-            Don't have an account?{" "}
-            <Link href="/auth/signup" className="text-brown font-medium hover:underline">
-              Sign up
+            Already have an account?{" "}
+            <Link href="/auth/signin" className="text-brown font-medium hover:underline">
+              Sign in
             </Link>
-          </p>
-        </div>
-
-        <div className="mt-8 text-center">
-          <p className="text-xs text-charcoal/50">
-            Demo: Use admin@hunar.com / admin123 for admin access
           </p>
         </div>
       </div>
     </div>
   );
 }
-

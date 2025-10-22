@@ -1,70 +1,86 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
-
-export async function fetchAPI(endpoint: string, options: RequestInit = {}) {
-  const url = `${API_URL}${endpoint}`;
-  
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`API error: ${response.statusText}`);
-  }
-
-  return response.json();
-}
+// Firebase-based API - replaces REST API calls
+import { productsAPI, categoriesAPI, ordersAPI, cartAPI, wishlistAPI, searchAPI } from './firebase-api';
+import { authAPI } from './firebase-auth';
 
 export const api = {
   products: {
-    list: (params?: Record<string, string>) => {
-      const query = params ? `?${new URLSearchParams(params)}` : "";
-      return fetchAPI(`/products${query}`);
+    list: (params?: Record<string, any>) => {
+      // Convert string params to appropriate types
+      const convertedParams: any = {};
+      if (params) {
+        Object.entries(params).forEach(([key, value]) => {
+          if (key === 'page' || key === 'limit') {
+            convertedParams[key] = parseInt(value as string);
+          } else if (key === 'minPrice' || key === 'maxPrice') {
+            convertedParams[key] = parseInt(value as string);
+          } else if (key === 'inStock' || key === 'featured' || key === 'isNew' || key === 'isBestseller') {
+            convertedParams[key] = value === 'true';
+          } else {
+            convertedParams[key] = value;
+          }
+        });
+      }
+      return productsAPI.list(convertedParams);
     },
-    get: (slug: string) => fetchAPI(`/products/${slug}`),
+    get: (slug: string) => productsAPI.getBySlug(slug),
   },
   
   categories: {
-    list: () => fetchAPI("/categories"),
-    get: (slug: string) => fetchAPI(`/categories/${slug}`),
+    list: () => categoriesAPI.list(),
+    get: (slug: string) => categoriesAPI.getBySlug(slug),
   },
   
   cart: {
-    validate: (items: any[]) =>
-      fetchAPI("/cart/validate", {
-        method: "POST",
-        body: JSON.stringify({ items }),
-      }),
+    validate: (items: any[]) => cartAPI.validate(items),
   },
   
   checkout: {
-    createSession: (data: any) =>
-      fetchAPI("/checkout/create-session", {
-        method: "POST",
-        body: JSON.stringify(data),
-      }),
-    verify: (sessionId: string) => fetchAPI(`/checkout/verify/${sessionId}`),
+    createSession: async (data: any) => {
+      // Calculate totals
+      const subtotal = data.items.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
+      const shipping = subtotal >= 500000 ? 0 : 30000; // Free shipping over Rs. 5000
+      const total = subtotal + shipping;
+
+      // Create order in Firestore
+      const orderData = {
+        userId: data.userId,
+        email: data.email,
+        items: data.items,
+        subtotal,
+        shipping,
+        discount: 0,
+        total,
+        status: 'CONFIRMED' as const,
+        paymentMethod: 'COD',
+        shippingAddress: data.shippingAddress,
+      };
+
+      const orderId = await ordersAPI.create(orderData);
+      return { orderId };
+    },
+    verify: (sessionId: string) => ordersAPI.getById(sessionId),
   },
   
   auth: {
-    register: (data: any) =>
-      fetchAPI("/auth/register", {
-        method: "POST",
-        body: JSON.stringify(data),
-      }),
-    login: (data: any) =>
-      fetchAPI("/auth/login", {
-        method: "POST",
-        body: JSON.stringify(data),
-      }),
+    register: (data: { name: string; email: string; password: string }) =>
+      authAPI.register(data.email, data.password, data.name),
+    login: (data: { email: string; password: string }) =>
+      authAPI.login(data.email, data.password),
+    logout: () => authAPI.logout(),
+    getCurrentUser: () => authAPI.getCurrentUser(),
+    onAuthStateChanged: (callback: (user: any) => void) => authAPI.onAuthStateChanged(callback),
   },
   
-  search: (query: string, limit?: number) => {
-    const params = new URLSearchParams({ q: query });
-    if (limit) params.set("limit", limit.toString());
-    return fetchAPI(`/search?${params}`);
+  orders: {
+    getById: (orderId: string) => ordersAPI.getById(orderId),
+    getByUserId: (userId: string) => ordersAPI.getByUserId(userId),
   },
+
+  wishlist: {
+    add: (userId: string, productId: string) => wishlistAPI.add(userId, productId),
+    remove: (userId: string, productId: string) => wishlistAPI.remove(userId, productId),
+    getUserWishlist: (userId: string) => wishlistAPI.getUserWishlist(userId),
+  },
+  
+  search: (query: string, limit?: number) => searchAPI.search(query, limit),
 };
