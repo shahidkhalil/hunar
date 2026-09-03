@@ -12,8 +12,10 @@ module.exports = {
       colors: {
         cream: "#FAF5EF",
         brown: "#6B4F3B",
+        "brown-warm": "#6B4F3B",
         charcoal: "#2B2B2B",
         gold: "#C5A880",
+        "gold-soft": "#C5A880",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

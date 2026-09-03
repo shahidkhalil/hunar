@@ -1,20 +1,23 @@
-// Firebase-based API - replaces REST API calls
-import { productsAPI, categoriesAPI, ordersAPI, cartAPI, wishlistAPI, searchAPI } from './firebase-api';
-import { authAPI } from './firebase-auth';
+import { productsAPI, categoriesAPI, ordersAPI, cartAPI, wishlistAPI, searchAPI } from "./supabase-api";
+import { authAPI } from "./supabase-auth";
 
 export const api = {
   products: {
     list: (params?: Record<string, any>) => {
-      // Convert string params to appropriate types
       const convertedParams: any = {};
       if (params) {
         Object.entries(params).forEach(([key, value]) => {
-          if (key === 'page' || key === 'limit') {
-            convertedParams[key] = parseInt(value as string);
-          } else if (key === 'minPrice' || key === 'maxPrice') {
-            convertedParams[key] = parseInt(value as string);
-          } else if (key === 'inStock' || key === 'featured' || key === 'isNew' || key === 'isBestseller') {
-            convertedParams[key] = value === 'true';
+          if (key === "page" || key === "limit") {
+            convertedParams[key] = parseInt(value as string, 10);
+          } else if (key === "minPrice" || key === "maxPrice") {
+            convertedParams[key] = parseInt(value as string, 10);
+          } else if (
+            key === "inStock" ||
+            key === "featured" ||
+            key === "isNew" ||
+            key === "isBestseller"
+          ) {
+            convertedParams[key] = value === true || value === "true";
           } else {
             convertedParams[key] = value;
           }
@@ -24,24 +27,25 @@ export const api = {
     },
     get: (slug: string) => productsAPI.getBySlug(slug),
   },
-  
+
   categories: {
     list: () => categoriesAPI.list(),
     get: (slug: string) => categoriesAPI.getBySlug(slug),
   },
-  
+
   cart: {
     validate: (items: any[]) => cartAPI.validate(items),
   },
-  
+
   checkout: {
     createSession: async (data: any) => {
-      // Calculate totals
-      const subtotal = data.items.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
-      const shipping = subtotal >= 500000 ? 0 : 30000; // Free shipping over Rs. 5000
+      const subtotal = data.items.reduce(
+        (sum: number, item: any) => sum + item.price * item.quantity,
+        0
+      );
+      const shipping = subtotal >= 500000 ? 0 : 30000;
       const total = subtotal + shipping;
 
-      // Create order in Firestore
       const orderData = {
         userId: data.userId,
         email: data.email,
@@ -50,8 +54,9 @@ export const api = {
         shipping,
         discount: 0,
         total,
-        status: 'CONFIRMED' as const,
-        paymentMethod: 'COD',
+        currency: "PKR",
+        status: "CONFIRMED" as const,
+        paymentMethod: "COD",
         shippingAddress: data.shippingAddress,
       };
 
@@ -60,7 +65,7 @@ export const api = {
     },
     verify: (sessionId: string) => ordersAPI.getById(sessionId),
   },
-  
+
   auth: {
     register: (data: { name: string; email: string; password: string }) =>
       authAPI.register(data.email, data.password, data.name),
@@ -70,7 +75,7 @@ export const api = {
     getCurrentUser: () => authAPI.getCurrentUser(),
     onAuthStateChanged: (callback: (user: any) => void) => authAPI.onAuthStateChanged(callback),
   },
-  
+
   orders: {
     getById: (orderId: string) => ordersAPI.getById(orderId),
     getByUserId: (userId: string) => ordersAPI.getByUserId(userId),
@@ -81,6 +86,6 @@ export const api = {
     remove: (userId: string, productId: string) => wishlistAPI.remove(userId, productId),
     getUserWishlist: (userId: string) => wishlistAPI.getUserWishlist(userId),
   },
-  
+
   search: (query: string, limit?: number) => searchAPI.search(query, limit),
 };

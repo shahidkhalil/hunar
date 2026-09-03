@@ -1,50 +1,86 @@
 import Image from "next/image";
-import { Instagram } from "lucide-react";
+import Link from "next/link";
+import { Instagram, ArrowUpRight } from "lucide-react";
+
+const INSTAGRAM_URL = "https://www.instagram.com/hunarofficial1/";
+
+const images = [
+  "/brand/social-crochet-01.png",
+  "/brand/social-crochet-02.png",
+  "/brand/social-crochet-03.png",
+  "/brand/social-crochet-04.png",
+  "/brand/social-crochet-05.png",
+  "/brand/social-crochet-06.png",
+  "/brand/social-crochet-01.png",
+  "/brand/social-crochet-02.png",
+  "/brand/social-crochet-03.png",
+  "/brand/social-crochet-04.png",
+  "/brand/social-crochet-05.png",
+  "/brand/social-crochet-06.png",
+];
 
 export function InstagramGrid() {
-  const images = [
-    "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400",
-    "https://images.unsplash.com/photo-1576871337622-98d48d1cf531?w=400",
-    "https://images.unsplash.com/photo-1618932260643-eee4a2f652a6?w=400",
-    "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400",
-    "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=400",
-    "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400",
-  ];
-
   return (
-    <section className="py-16 md:py-24">
-      <div className="container-custom">
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 mb-4">
-            <Instagram className="h-6 w-6" />
-            <h2 className="heading-3">@hunarcraft</h2>
+    <section className="section-padding bg-cream/40">
+      <div className="container-custom mb-10">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 text-brown-warm mb-3">
+              <Instagram className="h-5 w-5" />
+              <span className="text-sm font-medium uppercase tracking-widest">
+                The Hunar aesthetic
+              </span>
+            </div>
+            <h2 className="heading-2 mb-2">Handmade, one stitch at a time</h2>
+            <p className="text-charcoal/70 max-w-lg">
+              Warm textures, custom colours, and slow-fashion craft — follow{" "}
+              <span className="font-medium">@hunarofficial1</span> for real orders and new
+              drops from the studio.
+            </p>
           </div>
-          <p className="text-lg text-charcoal/70">
-            Follow us for daily inspiration and behind-the-scenes
-          </p>
+          <a
+            href={INSTAGRAM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-sm font-medium text-brown-warm hover:underline underline-offset-4 shrink-0"
+          >
+            Follow on Instagram
+            <ArrowUpRight className="h-4 w-4" />
+          </a>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-1 md:gap-1.5">
         {images.map((image, index) => (
           <a
-            key={index}
-            href="https://instagram.com"
+            key={`${image}-${index}`}
+            href={INSTAGRAM_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="relative aspect-square overflow-hidden group"
           >
             <Image
               src={image}
-              alt={`Instagram post ${index + 1}`}
+              alt={`Hunar crochet inspiration ${index + 1}`}
               fill
-              className="object-cover transition-transform duration-300 group-hover:scale-110"
+              className="object-cover transition-transform duration-500 group-hover:scale-110"
+              sizes="(max-width: 768px) 50vw, 16vw"
             />
-            <div className="absolute inset-0 bg-brown-warm/0 group-hover:bg-brown-warm/20 transition-colors" />
+            <div className="absolute inset-0 bg-charcoal/0 group-hover:bg-charcoal/25 transition-colors flex items-center justify-center">
+              <Instagram className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
+            </div>
           </a>
         ))}
+      </div>
+
+      <div className="container-custom mt-8 text-center">
+        <Link
+          href="/shop"
+          className="text-sm font-medium text-brown-warm hover:underline underline-offset-4"
+        >
+          Shop the collection →
+        </Link>
       </div>
     </section>
   );
 }
-

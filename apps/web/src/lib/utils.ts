@@ -12,6 +12,14 @@ export function formatPrice(price: number, currency: string = "PKR"): string {
   }).format(price / 100);
 }
 
+export function getImageUrl(
+  images?: Array<{ url?: string }> | string | null
+): string {
+  if (!images) return "";
+  if (typeof images === "string") return images;
+  return images[0]?.url || "";
+}
+
 export function slugify(text: string): string {
   return text
     .toLowerCase()

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { authAPI, AuthUser } from '@/lib/firebase-auth';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { authAPI, type AuthUser } from "@/lib/supabase-auth";
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -18,24 +18,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = authAPI.onAuthStateChanged((user) => {
-      setUser(user);
-      setLoading(false);
+    let mounted = true;
+
+    authAPI.getCurrentUser()
+      .then((currentUser) => {
+        if (mounted) {
+          setUser(currentUser);
+          setLoading(false);
+        }
+      })
+      .catch((error) => {
+        console.error("Get current user error:", error);
+        if (mounted) setLoading(false);
+      });
+
+    const unsubscribe = authAPI.onAuthStateChanged((nextUser) => {
+      if (mounted) {
+        setUser(nextUser);
+        setLoading(false);
+      }
     });
 
-    return unsubscribe;
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
-    const user = await authAPI.login(email, password);
-    setUser(user);
-    return user;
+    const nextUser = await authAPI.login(email, password);
+    setUser(nextUser);
+    return nextUser;
   };
 
   const register = async (name: string, email: string, password: string) => {
-    const user = await authAPI.register(email, password, name);
-    setUser(user);
-    return user;
+    const nextUser = await authAPI.register(email, password, name);
+    setUser(nextUser);
+    return nextUser;
   };
 
   const logout = async () => {
@@ -51,17 +70,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

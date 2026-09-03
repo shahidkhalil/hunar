@@ -4,7 +4,7 @@ import { LogoWithText } from "@/components/ui/Logo";
 
 export function Footer() {
   return (
-    <footer className="bg-charcoal text-cream mt-20">
+    <footer className="bg-charcoal text-cream">
       <div className="container-custom py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}

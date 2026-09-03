@@ -1,11 +1,8 @@
-// Firestore collections structure based on Prisma schema
-// This file defines the data models and collection structure for Firestore
-
 export interface User {
   id: string;
   name?: string;
   email: string;
-  role: 'CUSTOMER' | 'ADMIN';
+  role: "CUSTOMER" | "ADMIN";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -14,7 +11,7 @@ export interface Category {
   id: string;
   name: string;
   slug: string;
-  gender?: 'WOMEN' | 'MEN' | 'UNISEX';
+  gender?: "WOMEN" | "MEN" | "UNISEX";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,8 +22,8 @@ export interface Product {
   slug: string;
   subtitle?: string;
   description: string;
-  price: number; // in cents
-  compareAt?: number; // compare at price in cents
+  price: number;
+  compareAt?: number;
   currency: string;
   images: Array<{ publicId: string; url: string }>;
   materials?: string;
@@ -38,8 +35,9 @@ export interface Product {
   isNew: boolean;
   isBestseller: boolean;
   stock: number;
-  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
-  categoryIds: string[]; // Array of category IDs
+  status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+  categoryIds: string[];
+  variants?: Variant[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -51,7 +49,7 @@ export interface Variant {
   size?: string;
   sku: string;
   stock: number;
-  price?: number; // optional variant price override
+  price?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -63,10 +61,11 @@ export interface Order {
   items: Array<{
     productId: string;
     variantId?: string;
-    title: string;
+    title?: string;
     color?: string;
     size?: string;
-    qty: number;
+    quantity?: number;
+    qty?: number;
     price: number;
   }>;
   subtotal: number;
@@ -74,7 +73,7 @@ export interface Order {
   discount: number;
   total: number;
   currency: string;
-  status: 'PENDING' | 'CONFIRMED' | 'PAID' | 'FULFILLED' | 'CANCELLED' | 'REFUNDED';
+  status: "PENDING" | "CONFIRMED" | "PAID" | "FULFILLED" | "CANCELLED" | "REFUNDED";
   paymentMethod: string;
   paymentIntent?: string;
   shippingAddress?: {
@@ -117,7 +116,7 @@ export interface WishlistItem {
 export interface Coupon {
   id: string;
   code: string;
-  type: 'PERCENT' | 'FIXED';
+  type: "PERCENT" | "FIXED";
   value: number;
   active: boolean;
   startsAt?: Date;
@@ -130,25 +129,8 @@ export interface Coupon {
 
 export interface HomepageSlot {
   id: string;
-  key: string; // "hero", "featuredWomen", "featuredMen", "bestsellers"
-  config: any; // JSON configuration
+  key: string;
+  config: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 }
-
-// Collection names
-export const COLLECTIONS = {
-  USERS: 'users',
-  CATEGORIES: 'categories',
-  PRODUCTS: 'products',
-  VARIANTS: 'variants',
-  ORDERS: 'orders',
-  ADDRESSES: 'addresses',
-  WISHLIST: 'wishlist',
-  COUPONS: 'coupons',
-  HOMEPAGE_SLOTS: 'homepageSlots',
-} as const;
-
-// Helper functions for Firestore operations
-export const createTimestamp = () => new Date();
-export const createId = () => crypto.randomUUID();

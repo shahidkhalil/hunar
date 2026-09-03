@@ -42,14 +42,13 @@ export default function SignUpPage() {
       router.push("/account");
     } catch (error: any) {
       console.error("Registration error:", error);
-      if (error.code === "auth/email-already-in-use") {
+      const message = String(error?.message || "");
+      if (message.toLowerCase().includes("already registered")) {
         setError("An account with this email already exists");
-      } else if (error.code === "auth/invalid-email") {
-        setError("Invalid email address");
-      } else if (error.code === "auth/weak-password") {
-        setError("Password is too weak");
+      } else if (message.toLowerCase().includes("password")) {
+        setError(message);
       } else {
-        setError("An error occurred. Please try again.");
+        setError(message || "An error occurred. Please try again.");
       }
     } finally {
       setLoading(false);

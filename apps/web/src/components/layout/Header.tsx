@@ -18,12 +18,12 @@ export function Header() {
   return (
     <>
       {/* Announcement Bar */}
-      <div className="bg-brown text-white text-center py-2 text-sm">
-        Hand-crafted • Ethically made • Free shipping over Rs. 5000
+      <div className="bg-brown-warm text-white text-center py-2 text-sm">
+        Custom colours · Half advance, half COD · Free shipping over Rs. 5,000
       </div>
 
       {/* Main Header */}
-      <header className="sticky top-0 z-40 bg-cream border-b border-brown/10">
+      <header className="sticky top-0 z-40 bg-cream border-b border-brown-warm/10">
         <div className="container-custom">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
@@ -35,31 +35,31 @@ export function Header() {
             <nav className="hidden md:flex items-center space-x-8">
               <Link
                 href="/shop?gender=WOMEN"
-                className="text-charcoal hover:text-brown transition-colors"
+                className="text-charcoal hover:text-brown-warm transition-colors"
               >
                 Women
               </Link>
               <Link
                 href="/shop?gender=MEN"
-                className="text-charcoal hover:text-brown transition-colors"
+                className="text-charcoal hover:text-brown-warm transition-colors"
               >
                 Men
               </Link>
               <Link
                 href="/shop?isNew=true"
-                className="text-charcoal hover:text-brown transition-colors"
+                className="text-charcoal hover:text-brown-warm transition-colors"
               >
                 New
               </Link>
               <Link
                 href="/lookbook"
-                className="text-charcoal hover:text-brown transition-colors"
+                className="text-charcoal hover:text-brown-warm transition-colors"
               >
                 Lookbook
               </Link>
               <Link
                 href="/about"
-                className="text-charcoal hover:text-brown transition-colors"
+                className="text-charcoal hover:text-brown-warm transition-colors"
               >
                 About
               </Link>
@@ -69,7 +69,7 @@ export function Header() {
             <div className="flex items-center space-x-4">
               <Link
                 href="/search"
-                className="text-charcoal hover:text-brown transition-colors"
+                className="text-charcoal hover:text-brown-warm transition-colors"
                 aria-label="Search"
               >
                 <Search className="w-5 h-5" />
@@ -90,7 +90,7 @@ export function Header() {
               >
                 <ShoppingBag className="w-5 h-5" />
                 {mounted && itemCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-brown text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 bg-brown-warm text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                     {itemCount}
                   </span>
                 )}
@@ -109,7 +109,7 @@ export function Header() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-brown/10 bg-cream">
+          <div className="md:hidden border-t border-brown-warm/10 bg-cream">
             <nav className="container-custom py-4 space-y-4">
               <Link
                 href="/shop?gender=WOMEN"

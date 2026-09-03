@@ -24,9 +24,8 @@ export default function OrderSuccessPage() {
       if (!orderId) return;
       
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/checkout/order/${orderId}`);
-        const data = await response.json();
-        setOrder(data.order);
+        const data = await api.orders.getById(orderId);
+        setOrder(data);
       } catch (error) {
         console.error("Error fetching order:", error);
       } finally {
@@ -155,14 +154,14 @@ export default function OrderSuccessPage() {
               {order.items && order.items.map((item: any, index: number) => (
                 <div key={index} className="flex justify-between items-start py-3 border-b border-brown/10 last:border-0">
                   <div className="flex-1">
-                    <p className="font-medium text-charcoal">Product ID: {item.productId}</p>
+                    <p className="font-medium text-charcoal">{item.title || `Product ID: ${item.productId}`}</p>
                     <p className="text-sm text-charcoal/60">
-                      Quantity: {item.quantity}
+                      Quantity: {item.quantity ?? item.qty ?? 1}
                       {item.variantId && ` • Variant: ${item.variantId}`}
                     </p>
                   </div>
                   <p className="font-medium text-charcoal">
-                    {formatPrice(item.price * item.quantity)}
+                    {formatPrice(item.price * (item.quantity ?? item.qty ?? 1))}
                   </p>
                 </div>
               ))}

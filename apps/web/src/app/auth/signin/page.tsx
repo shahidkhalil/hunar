@@ -26,14 +26,13 @@ export default function SignInPage() {
       router.push("/account");
     } catch (error: any) {
       console.error("Login error:", error);
-      if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password") {
+      const message = String(error?.message || "");
+      if (message.toLowerCase().includes("invalid login")) {
         setError("Invalid email or password");
-      } else if (error.code === "auth/invalid-email") {
-        setError("Invalid email address");
-      } else if (error.code === "auth/too-many-requests") {
-        setError("Too many failed attempts. Please try again later.");
+      } else if (message.toLowerCase().includes("email")) {
+        setError(message);
       } else {
-        setError("An error occurred. Please try again.");
+        setError(message || "An error occurred. Please try again.");
       }
     } finally {
       setLoading(false);

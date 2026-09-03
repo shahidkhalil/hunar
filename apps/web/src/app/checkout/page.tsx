@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@hunar/ui";
 import { useCartStore } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
 import { api } from "@/lib/api";
+import { useAuth } from "@/components/AuthProvider";
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const { items, getTotal, clearCart } = useCartStore();
   const [loading, setLoading] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -23,6 +25,15 @@ export default function CheckoutPage() {
     country: "Pakistan",
     phone: "",
   });
+
+  useEffect(() => {
+    if (!user) return;
+    setFormData((prev) => ({
+      ...prev,
+      email: prev.email || user.email,
+      fullName: prev.fullName || user.name || "",
+    }));
+  }, [user]);
 
   const subtotal = getTotal();
   const shipping = subtotal >= 500000 ? 0 : 30000; // Free shipping over Rs. 5000
@@ -40,7 +51,9 @@ export default function CheckoutPage() {
           variantId: item.variantId,
           quantity: item.quantity,
           price: item.price,
+          title: item.title,
         })),
+        userId: user?.id,
         email: formData.email,
         shippingAddress: {
           fullName: formData.fullName,
